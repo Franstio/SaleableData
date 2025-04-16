@@ -1,0 +1,39 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <link rel="stylesheet" href="@Assets["app.css"]" />
+    <link rel="stylesheet" href="@Assets["SaleableData.styles.css"]" />
+    <link href="fonts.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="flowbite.min.css" />
+
+    <link rel="stylesheet" href="SaleableGraph.styles.css" />
+    <link href="_content/Blazorise.Icons.FontAwesome/v6/css/all.min.css" rel="stylesheet">
+
+    <link href="_content/Blazorise/blazorise.css?v=1.7.5.0" rel="stylesheet" />
+    <link href="_content/Blazorise.Tailwind/blazorise.tailwind.prod.css?v=1.7.5.0" rel="stylesheet" />
+    <link href="_content/Blazorise.Sidebar/blazorise.sidebar.css" rel="stylesheet" />
+    <style>
+
+
+        .flatpickr-calendar.static {
+            position: static !important;
+        }
+    </style>
+    <ImportMap />
+    <HeadOutlet />
+</head>
+
+<body>
+    <Routes @rendermode="RenderMode.InteractiveServer"/>
+
+    <script src="chart.min.js" ></script>
+    <script src="chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="_framework/blazor.web.js"></script>
+</body>
+
+</html>

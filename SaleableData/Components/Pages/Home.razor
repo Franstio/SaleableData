@@ -1,0 +1,128 @@
+﻿@page "/"
+
+<PageTitle>Data Step 2 </PageTitle>
+
+<Div Class="p-3 bg-white gap-3 flex h-screen w-full flex-col">
+    <Div Class="p-5 gap-6 flex flex-row">
+        <Select TValue="String" SelectedValueChanged="SelectDatabases" >
+            <SelectItem Value="@("")">--Select Database--</SelectItem>
+            <SelectItem Value=@("pcl20250410")>PCL</SelectItem>
+            <SelectItem Value=@("pcs20250410")>PCS</SelectItem>
+            <SelectItem Value=@("rack_pcs")>PCS2</SelectItem>
+        </Select>
+        <Autocomplete Data="Containers"
+        TItem="ContainerModel"
+        TValue="string"
+        SelectedValueChanged="SelectContainer"
+        Disabled="String.IsNullOrEmpty(SelectedDatabase)"
+        TextField="(container)=>container.Name"
+        ValueField="(container)=>container.Name"
+        Placeholder="Container Name"
+        SearchBackground="Background.Body"
+        SearchTextColor="TextColor.White"
+        Class="w-4 text-white">
+        </Autocomplete>
+    </Div>
+    <DatePicker TValue="DateTime?" @bind-Date="@FromDate" Placeholder="From Date" StaticPicker="false"/>
+
+    <DatePicker TValue="DateTime?" @bind-Date="@ToDate" Placeholder="To Date" StaticPicker="false" />
+    <BarChart @ref="barChart"
+    TItem="decimal"/>
+
+</Div>
+@code
+{
+    public required BarChart<decimal> barChart;
+    public BarChartOptions barChartOptions = new BarChartOptions()
+    {
+        Parsing = new ChartParsing
+        {
+            XAxisKey="Date",
+            YAxisKey="Weight"
+        },
+            Scales = new ChartScales()
+            {
+                X = new ChartAxis()
+                {
+                    Display = true,
+                    Type = "timeseries",
+                    Time  = new ChartAxisTime(){
+                        Parser = "YYYY-MM-DD",
+                        Unit = "day",
+                        StepSize = 1
+                    },
+                    Title = new ChartScaleTitle
+                    {
+                        Display = true,
+                        Text = "Date"
+                    }
+                },
+                Y = new ChartAxis()
+                {
+                    Display=true,
+
+                }
+            }
+    };
+    public List<TransactionModel> ListTransactions = new List<TransactionModel>();
+    public string SelectedDatabase { get; set; } = string.Empty;
+    public List<ContainerModel> Containers = [];
+    private DateTime? fromdt, todt;
+    public DateTime? FromDate { get =>fromdt; set
+        {
+            fromdt = value;
+            Check();
+        }
+    } 
+    public DateTime? ToDate { get => todt; set
+        {
+            todt = value;
+            Check();
+        }
+    }
+    [Inject]
+    public required Step2DataService Service { get; set; }
+    public string Container { get; set; } = string.Empty;
+    private List<string> backgroundColors = new() { ChartColor.FromRgba(255, 99, 132, 0.2f), ChartColor.FromRgba(54, 162, 235, 0.2f), ChartColor.FromRgba(255, 206, 86, 0.2f), ChartColor.FromRgba(75, 192, 192, 0.2f), ChartColor.FromRgba(153, 102, 255, 0.2f), ChartColor.FromRgba(255, 159, 64, 0.2f) };
+    private List<string> borderColors = new() { ChartColor.FromRgba(255, 99, 132, 1f), ChartColor.FromRgba(54, 162, 235, 1f), ChartColor.FromRgba(255, 206, 86, 1f), ChartColor.FromRgba(75, 192, 192, 1f), ChartColor.FromRgba(153, 102, 255, 1f), ChartColor.FromRgba(255, 159, 64, 1f) };
+
+    async Task SelectDatabases(string text)
+    {
+        SelectedDatabase = text;
+        Service.Database = text;
+        Containers = await Service.GetContainers();
+    }
+    public async  Task SelectContainer(string text)
+    {
+        Container   = text;
+        await Check();
+    }
+    public async Task Check()
+    {
+        List<TransactionModel> data = new List<TransactionModel>();
+        if (FromDate is not null && ToDate is not null)
+        {
+            ListTransactions = await Service.GetTransaction(Container,FromDate.Value,ToDate.Value);
+            var grouped = ListTransactions.GroupBy(x => x.Group_Id).ToList();
+            await barChart.Clear();
+            List<BarChartDataset<decimal>> datasets = [];
+            for (int i=0;i<grouped.Count;i++)
+            {
+                    datasets.Add(GetLineChartDataset(grouped[i].ToList()));
+            }
+            await barChart.AddLabelsDatasetsAndUpdate(ListTransactions.Select(x => x.RecordDate.ToString("yyyy-MM-dd")).Distinct().ToList(), datasets.ToArray());
+        }
+    }
+    private BarChartDataset<decimal> GetLineChartDataset(List<TransactionModel> data)
+    {
+        return new()
+            {
+                Label = "# of Transactions",
+                Data = data.Select(x=>x.Weight).ToList(),
+                BackgroundColor = backgroundColors[0], // line chart can only have one color
+                BorderColor = borderColors[0],
+                BorderWidth = 1
+            };
+    }
+
+}
