@@ -2,13 +2,14 @@
 
 <PageTitle>Data Step 2 </PageTitle>
 
-<Div Class="p-3 bg-white gap-3 flex h-screen w-full flex-col">
-    <Div Class="p-5 gap-6 flex flex-row">
+<Div Class="flex h-screen w-full flex-col gap-3 bg-white p-3">
+    <Div Class="flex flex-row gap-6 p-5">
         <Select TValue="String" SelectedValueChanged="SelectDatabases" >
             <SelectItem Value="@("")">--Select Database--</SelectItem>
-            <SelectItem Value=@("pcl20250410")>PCL</SelectItem>
-            <SelectItem Value=@("pcs20250410")>PCS</SelectItem>
-            <SelectItem Value=@("rack_pcs")>PCS2</SelectItem>
+            @foreach (var item in stations)
+            {
+                <SelectItem Value="@item.Value">@item.Key</SelectItem>
+            }
         </Select>
         <Autocomplete Data="Containers"
         TItem="ContainerModel"
@@ -23,9 +24,12 @@
         Class="w-4 text-white">
         </Autocomplete>
     </Div>
-    <DatePicker TValue="DateTime?" @bind-Date="@FromDate" Placeholder="From Date" StaticPicker="false"/>
+    <Div class="flex flex-row gap-8">
 
-    <DatePicker TValue="DateTime?" @bind-Date="@ToDate" Placeholder="To Date" StaticPicker="false" />
+        <DatePicker TValue="DateTime?" @bind-Date="@FromDate" Placeholder="From Date" StaticPicker="false" />
+
+        <DatePicker TValue="DateTime?" @bind-Date="@ToDate" Placeholder="To Date" StaticPicker="false" />
+    </Div>
     <BarChart @ref="barChart"
     TItem="decimal"/>
 
@@ -33,6 +37,7 @@
 @code
 {
     public required BarChart<decimal> barChart;
+    public Dictionary<string, string> stations = new();
     public BarChartOptions barChartOptions = new BarChartOptions()
     {
         Parsing = new ChartParsing
@@ -85,6 +90,11 @@
     public string Container { get; set; } = string.Empty;
     private List<string> backgroundColors = new() { ChartColor.FromRgba(255, 99, 132, 0.2f), ChartColor.FromRgba(54, 162, 235, 0.2f), ChartColor.FromRgba(255, 206, 86, 0.2f), ChartColor.FromRgba(75, 192, 192, 0.2f), ChartColor.FromRgba(153, 102, 255, 0.2f), ChartColor.FromRgba(255, 159, 64, 0.2f) };
     private List<string> borderColors = new() { ChartColor.FromRgba(255, 99, 132, 1f), ChartColor.FromRgba(54, 162, 235, 1f), ChartColor.FromRgba(255, 206, 86, 1f), ChartColor.FromRgba(75, 192, 192, 1f), ChartColor.FromRgba(153, 102, 255, 1f), ChartColor.FromRgba(255, 159, 64, 1f) };
+
+    protected override void OnAfterRender(bool isFirstRender)
+    {
+        stations = Service.GetStation();
+    }
 
     async Task SelectDatabases(string text)
     {

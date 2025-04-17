@@ -1,6 +1,7 @@
 ﻿using Blazorise;
 using Dapper;
 using MySql.Data.MySqlClient;
+using Org.BouncyCastle.Asn1;
 using SaleableData.Models;
 
 namespace SaleableData.Data
@@ -33,6 +34,16 @@ namespace SaleableData.Data
                 var result = await con.QueryAsync<TransactionModel>(query,new { fromContainer,from=f,to=t});
                 return result.ToList();
             }
+        }
+        public Dictionary<string, string> GetStation()
+        {
+            var s =config.GetSection("Saleable:Station").GetChildren();
+            Dictionary<string, string> Stations = new Dictionary<string, string>();
+            foreach (var i in s)
+            {
+                Stations.Add(i.GetChildren().First().Key, i.GetChildren().First().Value!);
+            }
+            return Stations;
         }
         public async Task<List<ContainerModel>> GetContainers()
         {
