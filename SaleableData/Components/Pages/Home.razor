@@ -31,19 +31,19 @@
         <DatePicker TValue="DateTime?" @bind-Date="@ToDate" Placeholder="To Date" StaticPicker="false" />
     </Div>
     <BarChart @ref="barChart"
-    TItem="decimal"/>
+    TItem="SealableChartModel" Options="@barChartOptions"/>
 
 </Div>
 @code
 {
-    public required BarChart<decimal> barChart;
+    public required BarChart<SealableChartModel> barChart;
     public Dictionary<string, string> stations = new();
     public BarChartOptions barChartOptions = new BarChartOptions()
     {
         Parsing = new ChartParsing
         {
-            XAxisKey="Date",
-            YAxisKey="Weight"
+            XAxisKey="date",
+            YAxisKey="weight"
         },
             Scales = new ChartScales()
             {
@@ -52,7 +52,7 @@
                     Display = true,
                     Type = "timeseries",
                     Time  = new ChartAxisTime(){
-                        Parser = "YYYY-MM-DD",
+                        Parser = "yyyy-MM-dd",
                         Unit = "day",
                         StepSize = 1
                     },
@@ -64,8 +64,7 @@
                 },
                 Y = new ChartAxis()
                 {
-                    Display=true,
-
+                    Display=true
                 }
             }
     };
@@ -115,20 +114,20 @@
             ListTransactions = await Service.GetTransaction(Container,FromDate.Value,ToDate.Value);
             var grouped = ListTransactions.GroupBy(x => x.Group_Id).ToList();
             await barChart.Clear();
-            List<BarChartDataset<decimal>> datasets = [];
+            List<BarChartDataset<SealableChartModel>> datasets = [];
             for (int i=0;i<grouped.Count;i++)
             {
-                    datasets.Add(GetLineChartDataset(grouped[i].ToList()));
+                datasets.Add(GetLineChartDataset(grouped[i].ToList()));
             }
-            await barChart.AddLabelsDatasetsAndUpdate(ListTransactions.Select(x => x.RecordDate.ToString("yyyy-MM-dd")).Distinct().ToList(), datasets.ToArray());
+            await barChart.AddDatasetsAndUpdate(datasets.ToArray());
         }
     }
-    private BarChartDataset<decimal> GetLineChartDataset(List<TransactionModel> data)
+    private BarChartDataset<SealableChartModel> GetLineChartDataset(List<TransactionModel> data)
     {
         return new()
             {
-                Label = "# of Transactions",
-                Data = data.Select(x=>x.Weight).ToList(),
+                Label = $"# of Transaction weight in Scales of {data.FirstOrDefault()?.Scales ?? ""}",
+                Data = data.Select(x=>new SealableChartModel() { Weight = x.Weight, Date = x.RecordDate.ToString("yyyy-MM-dd") }).ToList(),
                 BackgroundColor = backgroundColors[0], // line chart can only have one color
                 BorderColor = borderColors[0],
                 BorderWidth = 1

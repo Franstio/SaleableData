@@ -30,7 +30,7 @@ namespace SaleableData.Data
             using (var con = GetConnection())
             {
                 string f = from.ToString("yyyy-MM-dd"), t = to.ToString("yyyy-MM-dd");
-                string query = "Select Id,FromContainer,ToBin,RecordDate,Status,Weight,Type,ROW_NUMBER() OVER (PARTITION BY cast(recorddate as date) ORDER BY cast(recorddate as date)) AS Group_Id From Transaction Where fromContainer=@fromCOntainer and RecordDate between @from and @to and type='Dispose';";
+                string query = "Select t.Id,FromContainer,ToBin,RecordDate,Status,Weight,w.Scales,Type,ROW_NUMBER() OVER (PARTITION BY cast(recorddate as date) ORDER BY cast(recorddate as date)) AS Group_Id From Transaction t inner join waste w on t.idWaste=w.id Where fromContainer=@fromCOntainer and RecordDate between @from and @to and type='Dispose';";
                 var result = await con.QueryAsync<TransactionModel>(query,new { fromContainer,from=f,to=t});
                 return result.ToList();
             }
