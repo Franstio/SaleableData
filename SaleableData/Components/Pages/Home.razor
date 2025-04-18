@@ -21,23 +21,56 @@
         Placeholder="Container Name"
         SearchBackground="Background.Body"
         SearchTextColor="TextColor.White"
+         CustomFilter="@(( item, searchValue ) => item.Name.Contains( searchValue))"
+    
         Class="w-4 text-white">
         </Autocomplete>
     </Div>
     <Div class="flex flex-row gap-8">
 
-        <DatePicker TValue="DateTime?" @bind-Date="@FromDate" Placeholder="From Date" StaticPicker="false" />
+        <DatePicker TValue="DateTime?" Disabled="String.IsNullOrEmpty(SelectedDatabase) || String.IsNullOrEmpty(Container)" @bind-Date="@FromDate" Placeholder="From Date" StaticPicker="false" />
 
-        <DatePicker TValue="DateTime?" @bind-Date="@ToDate" Placeholder="To Date" StaticPicker="false" />
+        <DatePicker TValue="DateTime?"
+        Disabled="String.IsNullOrEmpty(SelectedDatabase) || String.IsNullOrEmpty(Container) || FromDate is null"
+        @bind-Date="@ToDate" Placeholder="To Date" StaticPicker="false" />
     </Div>
     <BarChart @ref="barChart"
-    TItem="SealableChartModel" Options="@barChartOptions"/>
+    TItem="SealableChartModel" Options="@barChartOptions">
+        <ChartZoom TItem="SealableChartModel" Options="barChartZoomOptions" />
+    </BarChart>
 
 </Div>
 @code
 {
     public required BarChart<SealableChartModel> barChart;
     public Dictionary<string, string> stations = new();
+    private ChartZoomPluginOptions barChartZoomOptions = new()
+        {
+            Zoom = new()
+            {
+                Mode = "y",
+                Wheel = new()
+                {
+                    Enabled = true,
+                },
+                Pinch = new()
+                {
+                    Enabled = true
+                },
+                Drag = new()
+                {
+                    Enabled = true
+                }
+            },
+            Transition = new ChartZoomTransitionOptions()
+            {
+                Animation = new ChartAnimation()
+                {
+                    Duration = 1000,
+                    Easing = "easeOutCubic"
+                }
+            }
+        };
     public BarChartOptions barChartOptions = new BarChartOptions()
     {
         Parsing = new ChartParsing
@@ -53,8 +86,6 @@
                     Type = "timeseries",
                     Time  = new ChartAxisTime(){
                         Parser = "yyyy-MM-dd",
-                        Unit = "day",
-                        StepSize = 1
                     },
                     Title = new ChartScaleTitle
                     {
@@ -97,6 +128,10 @@
 
     async Task SelectDatabases(string text)
     {
+        Containers.Clear();
+        Container = string.Empty;
+        FromDate = null;
+        ToDate = null;
         SelectedDatabase = text;
         Service.Database = text;
         Containers = await Service.GetContainers();
