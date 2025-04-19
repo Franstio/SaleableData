@@ -13,5 +13,11 @@
   "library": "hammer.js@2.0.8",
   "destination": "wwwroot/hammer.js/"
 }
+,
+{
+  "provider": "cdnjs",
+  "library": "chartjs-plugin-datalabels@2.2.0",
+  "destination": "wwwroot/lib/chartjs-plugin-datalabels/"
+}
 ]
 }

@@ -5,7 +5,7 @@
 <Div Class="flex h-screen w-full flex-col gap-3 bg-white p-3">
     <Div Class="flex flex-row gap-6 p-5">
         <Select TValue="String" SelectedValueChanged="SelectDatabases" >
-        <SelectItem Value="@("")">--Select Database--</SelectItem>
+            <SelectItem Value="@("")">--Select Database--</SelectItem>
             @foreach (var item in stations)
             {
                 <SelectItem Value="@item.Value">@item.Key</SelectItem>
@@ -21,8 +21,8 @@
         Placeholder="Container Name"
         SearchBackground="Background.Body"
         SearchTextColor="TextColor.White"
-         CustomFilter="@(( item, searchValue ) => item.Name.Contains( searchValue))"
-    
+        CustomFilter="@(( item, searchValue ) => item.Name.Contains( searchValue) || string.IsNullOrEmpty(searchValue))"
+
         Class="w-4 text-white">
         </Autocomplete>
     </Div>
@@ -35,15 +35,26 @@
         @bind-Date="@ToDate" Placeholder="To Date" StaticPicker="false" />
     </Div>
     <LineChart @ref="lineChart"
-    TItem="SealableChartModel" Options="@lineChartOptions">
-        <ChartZoom TItem="SealableChartModel" Options="lineChartZoomOptions" />
+    TItem="decimal" Options="@lineChartOptions">
+        <ChartZoom TItem="decimal" Options="lineChartZoomOptions" />
+        <ChartDataLabels  TItem="decimal" >
+
+        </ChartDataLabels>
     </LineChart>
 
 </Div>
 @code
 {
-    public required LineChart<SealableChartModel> lineChart;
+    public required LineChart<decimal> lineChart;
     public Dictionary<string, string> stations = new();
+    ChartDataLabelsDataset dtLabel = new()
+    {
+        DatasetIndex=0,
+        Options = new ChartDataLabelsOptions()
+        {
+
+        }
+    };
     private ChartZoomPluginOptions lineChartZoomOptions = new()
         {
             Zoom = new()
@@ -73,13 +84,14 @@
         };
     public LineChartOptions lineChartOptions = new ()
     {
-        Parsing = new ChartParsing
-        {
-            XAxisKey="date",
-            YAxisKey="weight"
-        },
+        // Parsing = new ChartParsing
+        // {
+        //     XAxisKey="date",
+        //     YAxisKey="weight"
+        // },
             Scales = new ChartScales()
             {
+
                 X = new ChartAxis()
                 {
                     Display = true,
@@ -87,8 +99,9 @@
                     Time  = new ChartAxisTime(){
                         Parser = "yyyy-MM-dd",
                         Unit="day",
-                        
+
                     },
+
                     Title = new ChartScaleTitle
                     {
                         Display = true,
@@ -99,7 +112,7 @@
                 {
                     Display=true
                 }
-            }
+            },
     };
     public List<TransactionModel> ListTransactions = new List<TransactionModel>();
     public string SelectedDatabase { get; set; } = string.Empty;
@@ -150,15 +163,16 @@
         {
             ListTransactions = await Service.GetTransaction(Container,FromDate.Value,ToDate.Value);
             await lineChart.Clear();
-            await lineChart.AddDatasetsAndUpdate(GetLineChartDataset(ListTransactions.Where(x=>x.Group_Id==1).ToList()));
+            var g = ListTransactions.Where(x => x.Group_Id == 1);
+            await lineChart.AddLabelsDatasetsAndUpdate(g.Select(x => x.RecordDate.ToString("yyyy-MM-dd")).ToArray(), GetLineChartDataset(g.ToList()));
         }
     }
-    private LineChartDataset<SealableChartModel> GetLineChartDataset(List<TransactionModel> data)
+    private LineChartDataset<decimal> GetLineChartDataset(List<TransactionModel> data)
     {
         return new()
             {
                 Label = $"# of Transaction weight in Scales of {data.FirstOrDefault()?.Scales ?? ""}",
-                Data = data.Select(x=>new SealableChartModel() { Weight = x.Weight, Date = x.RecordDate.ToString("yyyy-MM-dd") }).ToList(),
+                Data = data.Select(x=>x.Weight).ToList(),
                 BackgroundColor = backgroundColors[0], // line chart can only have one color
                 BorderColor = borderColors[0],
                 BorderWidth = 1
