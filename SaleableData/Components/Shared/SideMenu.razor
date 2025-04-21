@@ -1,23 +1,29 @@
-﻿<Sidebar @ref="sidebar">
-    <SidebarContent>
-        <SidebarBrand>
-            <a @onclick="()=>ToggleSidebar()">Salebale - Data</a>
-        </SidebarBrand>
-        <SidebarNavigation>
-            <SidebarLabel >Menu</SidebarLabel>
-            <SidebarItem>
-                <SidebarLink To="/" Title="Charting">
-                    <Icon Name="IconName.ChartBar" Margin="Margin.Is3.FromEnd" />Data Chart
-                </SidebarLink>
-            </SidebarItem>
-        </SidebarNavigation>
-    </SidebarContent>
-</Sidebar>
-@code {
-    Sidebar sidebar;
+﻿<Bar Mode="BarMode.VerticalInline"
+     CollapseMode="BarCollapseMode.Small"
+     Breakpoint="Breakpoint.Desktop"
+     NavigationBreakpoint="Breakpoint.Tablet"
+     ThemeContrast="ThemeContrast.Dark">
+    <BarBrand>
+        <BarItem>
+            <BarLink To="#">
+                Saleable - Data
+            </BarLink>
+        </BarItem>
+    </BarBrand>
+    <BarMenu>
+        <BarStart>
+            <BarItem>
+                <BarLink To="#">
 
-    void ToggleSidebar()
-    {
-        sidebar.Toggle();
-    }
+                    <BarIcon IconName="IconName.ChartLine" />Data Chart
+                </BarLink>
+            </BarItem>
+            <BarItem>
+                <BarLink To="#docs">Documentation</BarLink>
+            </BarItem>
+        </BarStart>
+    </BarMenu>
+</Bar>
+@code {
+    
 }

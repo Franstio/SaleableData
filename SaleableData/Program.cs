@@ -1,3 +1,4 @@
+using ApexCharts;
 using Blazorise;
 using Blazorise.Icons.FontAwesome;
 using Blazorise.Tailwind;
@@ -10,6 +11,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddBlazorise().AddTailwindProviders().AddFontAwesomeIcons();
+builder.Services.AddApexCharts(e =>
+{
+    e.GlobalOptions = new ApexChartBaseOptions
+    {
+        Debug = true
+    };
+});
 builder.Services.AddScoped<Step2DataService>();
 var app = builder.Build();
 

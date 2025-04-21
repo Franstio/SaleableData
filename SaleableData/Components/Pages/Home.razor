@@ -4,7 +4,8 @@
 
 <Div Class="flex h-screen w-full flex-col gap-3 bg-white p-3">
     <Div Class="flex flex-row gap-6 p-5">
-        <Select TValue="String" SelectedValueChanged="SelectDatabases" >
+
+        <Select TValue="String" SelectedValueChanged="SelectDatabases">
             <SelectItem Value="@("")">--Select Database--</SelectItem>
             @foreach (var item in stations)
             {
@@ -14,19 +15,22 @@
         <Autocomplete Data="Containers"
         TItem="ContainerModel"
         TValue="string"
+        @ref="autocomplete"
         SelectedValueChanged="SelectContainer"
         Disabled="String.IsNullOrEmpty(SelectedDatabase)"
         TextField="(container)=>container.Name"
         ValueField="(container)=>container.Name"
+        Immediate="true"
+        FreeTyping
         Placeholder="Container Name"
         SearchBackground="Background.Body"
         SearchTextColor="TextColor.White"
-        CustomFilter="@(( item, searchValue ) => item.Name.Contains( searchValue) || string.IsNullOrEmpty(searchValue))"
-
+        MinLength="0"
+        CustomFilter="@(( item, searchValue ) => item.Name.ToLower().Contains( searchValue.ToLower()) || string.IsNullOrEmpty(searchValue))"
         Class="w-4 text-white">
         </Autocomplete>
     </Div>
-    <Div class="flex flex-row gap-8">
+    <Div class="flex flex-row gap-6 p-5">
 
         <DatePicker TValue="DateTime?" Disabled="String.IsNullOrEmpty(SelectedDatabase) || String.IsNullOrEmpty(Container)" @bind-Date="@FromDate" Placeholder="From Date" StaticPicker="false" />
 
@@ -34,107 +38,83 @@
         Disabled="String.IsNullOrEmpty(SelectedDatabase) || String.IsNullOrEmpty(Container) || FromDate is null"
         @bind-Date="@ToDate" Placeholder="To Date" StaticPicker="false" />
     </Div>
-    <LineChart @ref="lineChart"
-    TItem="decimal" Options="@lineChartOptions">
-        <ChartZoom TItem="decimal" Options="lineChartZoomOptions" />
-        <ChartDataLabels  TItem="decimal" >
 
-        </ChartDataLabels>
-    </LineChart>
+    <Div Class="flex w-full">
+        <SumarryTable Data="SummaryData" />
+    </Div>
 
-</Div>
+    <Div Class="inline-block">
+
+        <ApexChart  Options="chartOptions" TItem="SealableChartModel" @ref="chart"
+        Title="Weight Transaction">
+
+
+            <ApexPointSeries TItem="SealableChartModel"
+            ShowDataLabels=true
+            Items="ChartData"
+            Name="Weight"
+            SeriesType="SeriesType.Line"
+            XValue="e => e.Date"
+            YValue="e=> e.Weight" />
+        </ApexChart>
+    </Div></Div>
 @code
 {
-    public required LineChart<decimal> lineChart;
-    public Dictionary<string, string> stations = new();
-    ChartDataLabelsDataset dtLabel = new()
-    {
-        DatasetIndex=0,
-        Options = new ChartDataLabelsOptions()
+    public required ApexChart<SealableChartModel> chart;
+    private SummaryData? SummaryData= null;
+    public required Autocomplete<ContainerModel,string> autocomplete;
+    public ApexChartOptions<SealableChartModel> chartOptions = new()
         {
-
-        }
-    };
-    private ChartZoomPluginOptions lineChartZoomOptions = new()
-        {
-            Zoom = new()
+            Xaxis = new XAxis()
             {
-                Mode = "x",
-                Wheel = new()
+                Type = XAxisType.Datetime,
+                TickPlacement = TickPlacement.Between,
+            },
+            Stroke = new Stroke()
+            {
+                Show = true
+
+            },
+            Chart = new Chart()
+            {
+                Zoom = new Zoom()
                 {
+                    AllowMouseWheelZoom = true,
                     Enabled = true,
-                },
-                Pinch = new()
-                {
-                    Enabled = true
-                },
-                Drag = new()
-                {
-                    Enabled = true
+                    Type = AxisType.X,
+                    AutoScaleYaxis = true
                 }
             },
-            Transition = new ChartZoomTransitionOptions()
+            DataLabels = new()
             {
-                Animation = new ChartAnimation()
-                {
-                    Duration = 1000,
-                    Easing = "easeOutCubic"
-                }
+                Enabled = true
             }
         };
-    public LineChartOptions lineChartOptions = new ()
-    {
-        // Parsing = new ChartParsing
-        // {
-        //     XAxisKey="date",
-        //     YAxisKey="weight"
-        // },
-            Scales = new ChartScales()
-            {
-
-                X = new ChartAxis()
-                {
-                    Display = true,
-                    Type = "timeseries",
-                    Time  = new ChartAxisTime(){
-                        Parser = "yyyy-MM-dd",
-                        Unit="day",
-
-                    },
-
-                    Title = new ChartScaleTitle
-                    {
-                        Display = true,
-                        Text = "Date"
-                    }
-                },
-                Y = new ChartAxis()
-                {
-                    Display=true
-                }
-            },
-    };
+    public Dictionary<string, string> stations = new();
     public List<TransactionModel> ListTransactions = new List<TransactionModel>();
     public string SelectedDatabase { get; set; } = string.Empty;
     public List<ContainerModel> Containers = [];
     private DateTime? fromdt, todt;
-    public DateTime? FromDate { get =>fromdt; set
+    public DateTime? FromDate
+    {
+        get => fromdt; set
         {
             fromdt = value;
             Check();
         }
-    } 
-    public DateTime? ToDate { get => todt; set
+    }
+    public DateTime? ToDate
+    {
+        get => todt; set
         {
             todt = value;
             Check();
         }
     }
+    private List<SealableChartModel> ChartData { get; set; } = new();
     [Inject]
     public required Step2DataService Service { get; set; }
     public string Container { get; set; } = string.Empty;
-    private List<string> backgroundColors = new() { ChartColor.FromRgba(255, 99, 132, 0.2f), ChartColor.FromRgba(54, 162, 235, 0.2f), ChartColor.FromRgba(255, 206, 86, 0.2f), ChartColor.FromRgba(75, 192, 192, 0.2f), ChartColor.FromRgba(153, 102, 255, 0.2f), ChartColor.FromRgba(255, 159, 64, 0.2f) };
-    private List<string> borderColors = new() { ChartColor.FromRgba(255, 99, 132, 1f), ChartColor.FromRgba(54, 162, 235, 1f), ChartColor.FromRgba(255, 206, 86, 1f), ChartColor.FromRgba(75, 192, 192, 1f), ChartColor.FromRgba(153, 102, 255, 1f), ChartColor.FromRgba(255, 159, 64, 1f) };
 
     protected override void OnAfterRender(bool isFirstRender)
     {
@@ -151,9 +131,9 @@
         Service.Database = text;
         Containers = await Service.GetContainers();
     }
-    public async  Task SelectContainer(string text)
+    public async Task SelectContainer(string text)
     {
-        Container   = text;
+        Container = text;
         await Check();
     }
     public async Task Check()
@@ -161,22 +141,74 @@
         List<TransactionModel> data = new List<TransactionModel>();
         if (FromDate is not null && ToDate is not null)
         {
-            ListTransactions = await Service.GetTransaction(Container,FromDate.Value,ToDate.Value);
-            await lineChart.Clear();
-            var g = ListTransactions.Where(x => x.Group_Id == 1);
-            await lineChart.AddLabelsDatasetsAndUpdate(g.Select(x => x.RecordDate.ToString("yyyy-MM-dd")).ToArray(), GetLineChartDataset(g.ToList()));
-        }
-    }
-    private LineChartDataset<decimal> GetLineChartDataset(List<TransactionModel> data)
-    {
-        return new()
+            await chart.ResetSeriesAsync(true, true);
+            ListTransactions = await Service.GetTransaction(Container, FromDate.Value, ToDate.Value);
+            var tr = ListTransactions.Where(x => x.Group_Id == 1);
+            ChartData = tr.Select(x => new SealableChartModel() { Date = x.RecordDate.ToString("yyyy-MM-dd"), Weight = x.Weight }).ToList();
+            var summaryData = SummaryData = new SummaryData(tr.ToList());
+            chartOptions.Annotations = new Annotations()
             {
-                Label = $"# of Transaction weight in Scales of {data.FirstOrDefault()?.Scales ?? ""}",
-                Data = data.Select(x=>x.Weight).ToList(),
-                BackgroundColor = backgroundColors[0], // line chart can only have one color
-                BorderColor = borderColors[0],
-                BorderWidth = 1
+                Yaxis = [
+                        new AnnotationsYAxis()
+                        {
+                            Y = summaryData.Q1,
+                            Label = new ApexCharts.Label()
+                            {
+                                Text = $"Q1: {summaryData.Q1}"
+                            },
+                            BorderColor="#00E396",
+                        },
+                        new AnnotationsYAxis()
+                        {
+                            Y = summaryData.Q2,
+                            Label = new ApexCharts.Label()
+                            {
+                                Text = $"Q2: {summaryData.Q2}"
+                            },
+                            BorderColor="#00E396"
+                        },
+                        new AnnotationsYAxis()
+                        {
+                            Y = summaryData.Q3,
+                            Label = new ApexCharts.Label()
+                            {
+                                Text = $"Q3: {summaryData.Q3}"
+                            },
+                            BorderColor="#00E396"
+                        },
+                ],
+                Points = [
+                new AnnotationsPoint(){
+                    X = summaryData.MinValue.RecordDate.ToString("dd MMM"),
+                    Y = Convert.ToDouble(summaryData.MinValue.Weight),
+                    Marker = new (){
+                        Size=8,
+                        Radius=3
+                    },
+                    Label = new(){
+                       Text ="Min Value"
+                    }
+                },
+                new AnnotationsPoint(){
+                    X = summaryData.MaxValue.RecordDate.ToString("dd MMM"),
+                    Y = Convert.ToDouble(summaryData.MaxValue.Weight),
+                    Marker = new (){
+                        Size=8,
+                        Radius=3
+                    },
+                    Label = new(){
+                       Text ="Max Value"
+                    }
+                }
+                ]
             };
+            // await InvokeAsync(StateHasChanged);
+            // await chart.UpdateSeriesAsync(true);
+            await InvokeAsync(StateHasChanged);
+            await chart.UpdateOptionsAsync(true, true, true);
+            await Task.Delay(100);
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
 }

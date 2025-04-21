@@ -1,0 +1,79 @@
+﻿<div class="relative flex h-full w-full flex-col overflow-scroll rounded-xl bg-white bg-clip-border text-gray-700 shadow-md">
+    <table class="w-full min-w-max table-auto text-left">
+        <thead>
+            <tr>
+                <th class="border-blue-gray-100 bg-blue-gray-50 border-b p-4">
+                    <p class="text-blue-gray-900 block font-sans text-sm leading-none font-normal antialiased opacity-70">
+                        Q1
+                    </p>
+                </th>
+                <th class="border-blue-gray-100 bg-blue-gray-50 border-b p-4">
+                    <p class="text-blue-gray-900 block font-sans text-sm leading-none font-normal antialiased opacity-70">
+                        Q2
+                    </p>
+                </th>
+                <th class="border-blue-gray-100 bg-blue-gray-50 border-b p-4">
+                    <p class="text-blue-gray-900 block font-sans text-sm leading-none font-normal antialiased opacity-70">
+                        Q3
+                    </p>
+                </th>
+                <th class="border-blue-gray-100 bg-blue-gray-50 border-b p-4">
+                    <p class="text-blue-gray-900 block font-sans text-sm leading-none font-normal antialiased opacity-70">
+                        Max Value
+                    </p>
+                </th>
+                <th class="border-blue-gray-100 bg-blue-gray-50 border-b p-4">
+                    <p class="text-blue-gray-900 block font-sans text-sm leading-none font-normal antialiased opacity-70">
+                        Min Value
+                    </p>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Data is null)
+            {
+                <tr></tr>
+            }
+            else
+            {
+                <tr>
+                    <td class="border-blue-gray-50 border-b p-4">
+                    <p class="text-blue-gray-900 block font-sans text-sm leading-normal font-normal antialiased">
+                        @Data.Q1
+                    </p>
+                </td>
+                <td class="border-blue-gray-50 border-b p-4">
+                    <p class="text-blue-gray-900 block font-sans text-sm leading-normal font-normal antialiased">
+                        @Data.Q2
+                    </p>
+                </td>
+                <td class="border-blue-gray-50 border-b p-4">
+                    <p class="text-blue-gray-900 block font-sans text-sm leading-normal font-normal antialiased">
+                        @Data.Q3
+                    </p>
+                </td>
+                <td class="border-blue-gray-50 border-b p-4">
+                    <p class="text-blue-gray-900 block font-sans text-sm leading-normal font-normal antialiased">
+                        @Data.MaxValue.Weight
+                    </p>
+                </td>
+
+                <td class="border-blue-gray-50 border-b p-4">
+                    <p class="text-blue-gray-900 block font-sans text-sm leading-normal font-normal antialiased">
+                        @Data.MinValue.Weight
+                    </p>
+                </td>
+            </tr>
+            }
+        </tbody>
+    </table>
+</div>
+@code {
+    [Parameter]
+    public SummaryData? Data { get; set; } = null;
+
+
+
+
+
+}
