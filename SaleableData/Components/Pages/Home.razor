@@ -14,12 +14,12 @@
         </Select>
         <Autocomplete Data="Containers"
         TItem="ContainerModel"
-        TValue="string"
+        TValue="ContainerModel"
         @ref="autocomplete"
         SelectedValueChanged="SelectContainer"
         Disabled="String.IsNullOrEmpty(SelectedDatabase)"
         TextField="(container)=>container.Name"
-        ValueField="(container)=>container.Name"
+        ValueField="(container)=>container"
         Immediate="true"
         FreeTyping
         Placeholder="Container Name"
@@ -32,15 +32,15 @@
     </Div>
     <Div class="flex flex-row gap-6 p-5">
 
-        <DatePicker TValue="DateTime?" Disabled="String.IsNullOrEmpty(SelectedDatabase) || String.IsNullOrEmpty(Container)" @bind-Date="@FromDate" Placeholder="From Date" StaticPicker="false" />
+        <DatePicker TValue="DateTime?" Disabled="String.IsNullOrEmpty(SelectedDatabase) || String.IsNullOrEmpty(Container.Name)" @bind-Date="@FromDate" Placeholder="From Date" StaticPicker="false" />
 
         <DatePicker TValue="DateTime?"
-        Disabled="String.IsNullOrEmpty(SelectedDatabase) || String.IsNullOrEmpty(Container) || FromDate is null"
+        Disabled="String.IsNullOrEmpty(SelectedDatabase) || String.IsNullOrEmpty(Container.Name) || FromDate is null"
         @bind-Date="@ToDate" Placeholder="To Date" StaticPicker="false" />
     </Div>
 
     <Div Class="flex w-full">
-        <SumarryTable Data="SummaryData" />
+        <SumarryTable Container="Container" Data="SummaryData" />
     </Div>
 
     <Div Class="inline-block">
@@ -62,7 +62,7 @@
 {
     public required ApexChart<SealableChartModel> chart;
     private SummaryData? SummaryData= null;
-    public required Autocomplete<ContainerModel,string> autocomplete;
+    public required Autocomplete<ContainerModel,ContainerModel> autocomplete;
     public ApexChartOptions<SealableChartModel> chartOptions = new()
         {
             Xaxis = new XAxis()
@@ -114,7 +114,7 @@
     private List<SealableChartModel> ChartData { get; set; } = new();
     [Inject]
     public required Step2DataService Service { get; set; }
-    public string Container { get; set; } = string.Empty;
+    public ContainerModel Container { get; set; } = new ContainerModel() { Name = "", WeightBin = 0 };
 
     protected override void OnAfterRender(bool isFirstRender)
     {
@@ -124,14 +124,14 @@
     async Task SelectDatabases(string text)
     {
         Containers.Clear();
-        Container = string.Empty;
+        Container = new ContainerModel() { Name = "", WeightBin = 0 };
         FromDate = null;
         ToDate = null;
         SelectedDatabase = text;
         Service.Database = text;
         Containers = await Service.GetContainers();
     }
-    public async Task SelectContainer(string text)
+    public async Task SelectContainer(ContainerModel text)
     {
         Container = text;
         await Check();
@@ -142,7 +142,7 @@
         if (FromDate is not null && ToDate is not null)
         {
             await chart.ResetSeriesAsync(true, true);
-            ListTransactions = await Service.GetTransaction(Container, FromDate.Value, ToDate.Value);
+            ListTransactions = await Service.GetTransaction(Container.Name, FromDate.Value, ToDate.Value);
             var tr = ListTransactions.Where(x => x.Group_Id == 1);
             ChartData = tr.Select(x => new SealableChartModel() { Date = x.RecordDate.ToString("yyyy-MM-dd"), Weight = x.Weight }).ToList();
             var summaryData = SummaryData = new SummaryData(tr.ToList());

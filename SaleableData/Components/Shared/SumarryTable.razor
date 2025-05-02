@@ -2,6 +2,12 @@
     <table class="w-full min-w-max table-auto text-left">
         <thead>
             <tr>
+
+                <th class="border-blue-gray-100 bg-blue-gray-50 border-b p-4">
+                    <p class="text-blue-gray-900 block font-sans text-sm leading-none font-normal antialiased opacity-70">
+                        Container Weight
+                    </p>
+                </th>
                 <th class="border-blue-gray-100 bg-blue-gray-50 border-b p-4">
                     <p class="text-blue-gray-900 block font-sans text-sm leading-none font-normal antialiased opacity-70">
                         Q1
@@ -37,33 +43,42 @@
             else
             {
                 <tr>
+                    @if(Container is not null)
+                    {
                     <td class="border-blue-gray-50 border-b p-4">
-                    <p class="text-blue-gray-900 block font-sans text-sm leading-normal font-normal antialiased">
-                        @Data.Q1
-                    </p>
-                </td>
-                <td class="border-blue-gray-50 border-b p-4">
-                    <p class="text-blue-gray-900 block font-sans text-sm leading-normal font-normal antialiased">
-                        @Data.Q2
-                    </p>
-                </td>
-                <td class="border-blue-gray-50 border-b p-4">
-                    <p class="text-blue-gray-900 block font-sans text-sm leading-normal font-normal antialiased">
-                        @Data.Q3
-                    </p>
-                </td>
-                <td class="border-blue-gray-50 border-b p-4">
-                    <p class="text-blue-gray-900 block font-sans text-sm leading-normal font-normal antialiased">
-                        @Data.MaxValue.Weight
-                    </p>
-                </td>
+                        <p class="text-blue-gray-900 block font-sans text-sm leading-normal font-normal antialiased">
+                            @Container.WeightBin
+                        </p>
+                    </td>
+                    }
 
-                <td class="border-blue-gray-50 border-b p-4">
-                    <p class="text-blue-gray-900 block font-sans text-sm leading-normal font-normal antialiased">
-                        @Data.MinValue.Weight
-                    </p>
-                </td>
-            </tr>
+                    <td class="border-blue-gray-50 border-b p-4">
+                        <p class="text-blue-gray-900 block font-sans text-sm leading-normal font-normal antialiased">
+                            @Data.Q1
+                        </p>
+                    </td>
+                    <td class="border-blue-gray-50 border-b p-4">
+                        <p class="text-blue-gray-900 block font-sans text-sm leading-normal font-normal antialiased">
+                            @Data.Q2
+                        </p>
+                    </td>
+                    <td class="border-blue-gray-50 border-b p-4">
+                        <p class="text-blue-gray-900 block font-sans text-sm leading-normal font-normal antialiased">
+                            @Data.Q3
+                        </p>
+                    </td>
+                    <td class="border-blue-gray-50 border-b p-4">
+                        <p class="text-blue-gray-900 block font-sans text-sm leading-normal font-normal antialiased">
+                            @Data.MaxValue.Weight
+                        </p>
+                    </td>
+
+                    <td class="border-blue-gray-50 border-b p-4">
+                        <p class="text-blue-gray-900 block font-sans text-sm leading-normal font-normal antialiased">
+                            @Data.MinValue.Weight
+                        </p>
+                    </td>
+                </tr>
             }
         </tbody>
     </table>
@@ -71,6 +86,9 @@
 @code {
     [Parameter]
     public SummaryData? Data { get; set; } = null;
+
+    [Parameter]
+    public ContainerModel? Container { get; set; } = null;
 
 
 

@@ -50,7 +50,7 @@ namespace SaleableData.Data
 
             using (var con = GetConnection())
             {
-                string query = "Select Name from Container where type='Dispose';";
+                string query = "Select Name,Weightbin from Container where type='Dispose';";
                 var result = await con.QueryAsync<ContainerModel>(query);
                 return result.ToList();
             }
