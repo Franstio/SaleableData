@@ -1,63 +1,81 @@
 ﻿@page "/"
 
 <PageTitle>Data Step 2 </PageTitle>
+<Layout Flex="Flex.Row" >
+    <Layout Sider >
+        <LayoutSider >
+            <LayoutSiderContent>
+                <Bar Mode="BarMode.VerticalInline"
+                CollapseMode="BarCollapseMode.Small"
+                Breakpoint="Breakpoint.Desktop"
+                NavigationBreakpoint="Breakpoint.Tablet"
+                ThemeContrast="ThemeContrast.Dark">
+                    <BarMenu>
+                        <BarStart>
+                            <BarItem>
 
-<Div Class="flex h-screen w-full flex-col gap-3 bg-white p-3">
-    <Div Class="flex flex-row gap-6 p-5">
+                                <Div Class="flex flex-grow-0 flex-col gap-6 p-5">
 
-        <Select TValue="String" SelectedValueChanged="SelectDatabases">
-            <SelectItem Value="@("")">--Select Database--</SelectItem>
-            @foreach (var item in stations)
-            {
-                <SelectItem Value="@item.Value">@item.Key</SelectItem>
-            }
-        </Select>
-        <Autocomplete Data="Containers"
-        TItem="ContainerModel"
-        TValue="ContainerModel"
-        @ref="autocomplete"
-        SelectedValueChanged="SelectContainer"
-        Disabled="String.IsNullOrEmpty(SelectedDatabase)"
-        TextField="(container)=>container.Name"
-        ValueField="(container)=>container"
-        Immediate="true"
-        FreeTyping
-        Placeholder="Container Name"
-        SearchBackground="Background.Body"
-        SearchTextColor="TextColor.White"
-        MinLength="0"
-        CustomFilter="@(( item, searchValue ) => item.Name.ToLower().Contains( searchValue.ToLower()) || string.IsNullOrEmpty(searchValue))"
-        Class="w-4 text-white">
-        </Autocomplete>
-    </Div>
-    <Div class="flex flex-row gap-6 p-5">
+                                    <Select TValue="String" SelectedValueChanged="SelectDatabases">
+                                        <SelectItem Value="@("")">--Select Database--</SelectItem>
+                                        @foreach (var item in stations)
+                                        {
+                                            <SelectItem Value="@item.Value">@item.Key</SelectItem>
+                                        }
+                                    </Select>
+                                    <Autocomplete Data="Containers"
+                                    TItem="ContainerModel"
+                                    TValue="ContainerModel"
+                                    @ref="autocomplete"
+                                    SelectedValueChanged="SelectContainer"
+                                    Disabled="String.IsNullOrEmpty(SelectedDatabase)"
+                                    TextField="(container)=>container.Name"
+                                    ValueField="(container)=>container"
+                                    Immediate="true"
+                                    FreeTyping
+                                    Placeholder="Container Name" MinLength="0"
+                                    CustomFilter="@(( item, searchValue ) => item.Name.ToLower().Contains( searchValue.ToLower()) || string.IsNullOrEmpty(searchValue))"
+                                    >
+                                    </Autocomplete>
 
-        <DatePicker TValue="DateTime?" Disabled="String.IsNullOrEmpty(SelectedDatabase) || String.IsNullOrEmpty(Container.Name)" @bind-Date="@FromDate" Placeholder="From Date" StaticPicker="false" />
+                                    <DatePicker TValue="DateTime?" Disabled="String.IsNullOrEmpty(SelectedDatabase) || String.IsNullOrEmpty(Container?.Name)" @bind-Date="@FromDate" Placeholder="From Date" StaticPicker="false" />
 
-        <DatePicker TValue="DateTime?"
-        Disabled="String.IsNullOrEmpty(SelectedDatabase) || String.IsNullOrEmpty(Container.Name) || FromDate is null"
-        @bind-Date="@ToDate" Placeholder="To Date" StaticPicker="false" />
-    </Div>
+                                    <DatePicker TValue="DateTime?"
+                                    Disabled="String.IsNullOrEmpty(SelectedDatabase) || String.IsNullOrEmpty(Container?.Name) || FromDate is null"
+                                    @bind-Date="@ToDate" Placeholder="To Date" StaticPicker="false" />
+                                </Div>
+                            </BarItem>
+                        </BarStart>
+                    </BarMenu>
+                </Bar>
+            </LayoutSiderContent>
 
-    <Div Class="flex w-full">
-        <SumarryTable Container="Container" Data="SummaryData" />
-    </Div>
+        </LayoutSider>
+        <LayoutContent>
+            <Div Class="flex h-screen w-full flex-col gap-3 bg-white">
 
-    <Div Class="inline-block">
+                <Div Class="flex w-full">
+                    <SumarryTable Container="Container" Data="SummaryData" />
+                </Div>
+                <Div Class="block" >
 
-        <ApexChart  Options="chartOptions" TItem="SealableChartModel" @ref="chart"
-        Title="Weight Transaction">
+                    <ApexChart Options="chartOptions" Height="@("720px")" TItem="SealableChartModel" @ref="chart"
+                    Title="Weight Transaction">
 
 
-            <ApexPointSeries TItem="SealableChartModel"
-            ShowDataLabels=true
-            Items="ChartData"
-            Name="Weight"
-            SeriesType="SeriesType.Line"
-            XValue="e => e.Date"
-            YValue="e=> e.Weight" />
-        </ApexChart>
-    </Div></Div>
+                        <ApexPointSeries TItem="SealableChartModel"
+                        ShowDataLabels=true
+                        Items="ChartData"
+                        Name="Weight"
+                        SeriesType="SeriesType.Line"
+                        XValue="e => e.Date"
+                        YValue="e=> e.Weight" />
+                    </ApexChart>
+                </Div>
+            </Div>
+        </LayoutContent>
+    </Layout>
+</Layout>
 @code
 {
     public required ApexChart<SealableChartModel> chart;
@@ -114,7 +132,7 @@
     private List<SealableChartModel> ChartData { get; set; } = new();
     [Inject]
     public required Step2DataService Service { get; set; }
-    public ContainerModel Container { get; set; } = new ContainerModel() { Name = "", WeightBin = 0 };
+    public ContainerModel? Container { get; set; } = null;
 
     protected override void OnAfterRender(bool isFirstRender)
     {
@@ -123,8 +141,8 @@
 
     async Task SelectDatabases(string text)
     {
+        Container = null;
         Containers.Clear();
-        Container = new ContainerModel() { Name = "", WeightBin = 0 };
         FromDate = null;
         ToDate = null;
         SelectedDatabase = text;
@@ -133,6 +151,8 @@
     }
     public async Task SelectContainer(ContainerModel text)
     {
+        if (text is null)
+            return;
         Container = text;
         await Check();
     }
@@ -142,7 +162,7 @@
         if (FromDate is not null && ToDate is not null)
         {
             await chart.ResetSeriesAsync(true, true);
-            ListTransactions = await Service.GetTransaction(Container.Name, FromDate.Value, ToDate.Value);
+            ListTransactions = await Service.GetTransaction(Container?.Name??"", FromDate.Value, ToDate.Value);
             var tr = ListTransactions.Where(x => x.Group_Id == 1);
             ChartData = tr.Select(x => new SealableChartModel() { Date = x.RecordDate.ToString("yyyy-MM-dd"), Weight = x.Weight }).ToList();
             var summaryData = SummaryData = new SummaryData(tr.ToList());

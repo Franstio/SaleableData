@@ -1,18 +1,23 @@
 ﻿@inherits LayoutComponentBase
 
+@* <Layout> *@
+@*     <Layout Sider> *@
+@*         <LayoutSider> *@
+@*             <LayoutSiderContent> *@
+@*                 <SideMenu/> *@
+@*             </LayoutSiderContent> *@
+@*         </LayoutSider> *@
+@*         <Layout> *@
+@*             <LayoutContent> *@
+@*                 @Body *@
+@*             </LayoutContent> *@
+@*         </Layout> *@
+@*     </Layout> *@
+@* </Layout> *@
 <Layout>
-    <Layout Sider>
-        <LayoutSider>
-            <LayoutSiderContent>
-                <SideMenu/>
-            </LayoutSiderContent>
-        </LayoutSider>
-        <Layout>
-            <LayoutContent>
-                @Body
-            </LayoutContent>
-        </Layout>
-    </Layout>
+    <LayoutContent>
+        @Body
+    </LayoutContent>
 </Layout>
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.
