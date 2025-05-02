@@ -164,6 +164,8 @@
             await chart.ResetSeriesAsync(true, true);
             ListTransactions = await Service.GetTransaction(Container?.Name??"", FromDate.Value, ToDate.Value);
             var tr = ListTransactions.Where(x => x.Group_Id == 1);
+            if (tr is null || tr.Count() < 1)
+                return;
             ChartData = tr.Select(x => new SealableChartModel() { Date = x.RecordDate.ToString("yyyy-MM-dd"), Weight = x.Weight }).ToList();
             var summaryData = SummaryData = new SummaryData(tr.ToList());
             chartOptions.Annotations = new Annotations()
